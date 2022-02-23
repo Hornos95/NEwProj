@@ -1,0 +1,87 @@
+Проверка на пустую строку ставиться до Action 
+
+void failIfEmpty(char * parname) {
+    lr_save_string(parname,"par");
+    if(lr_eval_string(lr_eval_string("\{{par}\}"))[0]==0) 
+        lr_exit(LR_EXIT_VUSER,LR_FAIL);
+}
+Action{
+
+//функция вызывается внутри после выполнения кореляции 
+ 
+failIfEmpty(параметр); пример :
+
+         sapgui_status_bar_get_param("1","ram_dogovor", LAST); // кореляция, вытаскиваем созданный договор
+
+	failIfEmpty("ram_dogovor"); // проверяем что мы вытащили, если пусто СКРИПТ БУДЕТ ЗАВЕРШЕН С ОШИБКОЙ
+}
+
+..............\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\...................
+
+Поиск ранее созданного документа для согласования транзакция ZNPAGR_IN
+
+int ar
+
+Action{
+
+//Cледующий участок вставить в после перехода на транзакцию, перед кнопкой "Согласовать"
+
+        sapgui_tree_get_item_text("const char *description",                                            //
+		"const char *treeID",       //
+		"const char *nodeKey",                                                                   //Вытаскиваем число несогласованных 
+		"const char *itemName",                                                                       // документов
+		"paramName1",                                                                   //
+		LAST);                                                                     //
+	
+	lr_save_param_regexp(lr_eval_string("{paramName1}"),
+	                     strlen(lr_eval_string("{paramName1}")),
+	                     "RegExp=****",
+	                     "Ordinal=1",
+	                     "ResultParam=paramName2",
+	                    LAST);
+	
+	ar = atoi(lr_eval_string("{paramName2}"));	                      // Переводим строку в число
+	
+	
+	for (i=0; i<ar; i++){                                       //Перебираем документы
+		
+		itoa(i,ii, 10);
+			
+		lr_output_message(lr_eval_string(ii));
+		
+	
+		sapgui_set_focus("const char *treeID", 
+		                 lr_eval_string(ii), 
+		                 "const char *nodeKey",
+		                 LAST);
+		
+		sapgui_grid_get_cell_data("const char *description",
+		"const char *treeID", 
+		lr_eval_string(ii), 
+		"const char *nodeKey", 
+		"paramName3", 
+		LAST);
+
+	sapgui_grid_scroll_to_row("const char *description", 
+		"const char *gridID", 
+		lr_eval_string(ii), 
+		LAST);
+		
+        if ((!strcmp(lr_eval_string("{paramName3}"),lr_eval_string("{paramNameYouNeed}")))) {  // Сравниваем документы с необходимым
+		    	
+			
+	sapgui_grid_select_cell_row("const char *description", 
+		"const char *gridID", 
+		lr_eval_string(ii), 
+		LAST);
+
+	sapgui_grid_select_rows("const char *description", 
+		"const char *gridID", 
+		lr_eval_string(ii), 
+		LAST);
+		
+	break;			
+		}
+		}
+
+.....................////////////////////////////////////////////////////////////////////////////////..................................
